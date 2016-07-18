@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Submarine ultimate</title>
+<style type="text/css">
+	
+body {
+	margin:0px;
+}
+
+#box {
+	width: 100px;
+	height:100px;
+	background-image: url("submarine.png");
+	background-size: 100px 100px;
+	position: relative;
+	top:830px;
+}
+
+#container {
+	width: 1600px;
+  	height: 930px;
+  	position: relative;
+  	background-image: url("marine.jpg");
+  	background-size: 1600px 930px;
+  	float:left;
+}	
+
+#target {
+	width: 100px;
+	height:100px;
+	background-image: url('shark.gif');
+	background-size: 100px 100px;
+	position: absolute;
+}
+
+#points, #bullets {
+	width:150px;
+	height:150px;
+	background-color:black;
+	color:gold;
+	float:left;
+}
+
+p {
+	font-size:270%;
+}
+
+#win {
+	height:780px;
+	width:300px;
+	float:left;
+	background-color:black;
+	color:yellow;
+}
+
+#res {
+	padding-top:250px;
+	font-size:300%;
+	padding-left:30px;
+}
+
+</style>
+<script>
+	var KEY_LEFT= 37;
+	var KEY_RIGHT = 39;
+	var position = {
+		top: 0,
+		left: 0
+	};
+	
+	var moveLeft = false;
+	var moveRight = false;
+	var speed = 5;
+	var mouseX = 0;
+	var box = document.getElementById('box');
+	var target = document.getElementById('target');
+	
+	function onFrame() {
+		if (moveLeft && position.left >= 0) {
+			position.left -= speed;
+		}		
+		if (moveRight && position.left <= 1500) {
+			position.left += speed;
+		}
+		
+		document.querySelector('#box').style.left = position.left + 'px';
+		
+		requestAnimationFrame(onFrame);
+	}
+	requestAnimationFrame(onFrame);
+	document.addEventListener('keydown', function(e) {
+		if (e.keyCode == KEY_LEFT) {
+			moveLeft = true;
+		}
+		if (e.keyCode == KEY_RIGHT) {
+			moveRight = true;
+		}
+	}, false);
+	document.addEventListener('keyup', function(e) {
+                if (e.keyCode == KEY_LEFT) {
+                        moveLeft = false;
+                }
+                if (e.keyCode == KEY_RIGHT) {
+                        moveRight = false;
+                }
+        }, false);
+	
+	document.onmousemove = function(e){
+		mouseX = e.clientX;
+		function animate(){
+			
+			position.left += (mouseX - position.left) / 10;
+			if (position.left >= 1500) {
+				position.left = 1500;
+			}
+			box.style.left = position.left + 'px';
+			setTimeout(animate,30);
+
+			
+		}
+			animate();
+	};
+
+	
+</script>
+</head>
+<body onload="document.getElementById('music').play()">
+	<audio id="music" src="sonar.mp3"></audio>
+	<div id="container">
+		<div id="target"></div>
+		<div id="box"></div>
+	</div>
+	<div id="points">
+		<img src="stars.png" height=50px; width=130px;/>
+		<p id="score">0</p>
+	</div>
+	<div id="bullets">
+		<img src="bullets.png" height=50px; width=130px;/>
+		<p id="numberBull">100</p>
+	</div>
+	<div id="win"><p id="res"></p></div>
+	<script>
+	
+	var KEY_SPACE = 32;
+	var setLeft = setInterval(function(){ sharkMoveRight() }, 80);
+	function sharkMoveRight(){
+	    var left = document.getElementById("target").offsetLeft;
+	    document.getElementById("target").style.left = (left + 10) + 'px';
+	    if (document.getElementById("target").style.left == '1500px') {
+	    	document.getElementById("target").style.left = (left - 1500) + 'px';
+	    }
+	}
+	
+	document.addEventListener("click", function() {
+		if (document.getElementById('numberBull').innerHTML > 0) {
+			document.getElementById('numberBull').innerHTML--;
+			shoot();
+		}
+		isWin();
+	});
+	
+	document.addEventListener("keydown", function(e) {
+		if (document.getElementById('numberBull').innerHTML > 0 && e.keyCode == KEY_SPACE) {
+			document.getElementById('numberBull').innerHTML--;
+			shoot();
+		}
+		isWin();
+	});
+	
+	
+	function isWin () {
+		if (document.getElementById('numberBull').innerHTML == 0 && document.getElementById('score').innerHTML < 70) {
+			document.getElementById('res').innerHTML = 'YOU LOSE!';
+		} else if (document.getElementById('numberBull').innerHTML == 0 && document.getElementById('score').innerHTML >= 70) {
+			document.getElementById('target').style.backgroundImage="url('dead.png')";
+			document.getElementById('res').innerHTML = 'YOU WIN!';
+		} 
+	}
+	
+	function shoot(e) {
+		var bullet = document.createElement('div');
+		bullet.style.height = '10px';
+		bullet.style.width = '5px';
+		bullet.style.backgroundColor = 'yellow';
+		bullet.style.position = 'absolute';
+		bullet.style.bottom = "90px";
+		bullet.style.left = (position.left + 30) + "px";
+		bullet.id = 'shot';
+		document.getElementById('container').appendChild(bullet);	
+		shootAgain();
+	}
+	
+	function shootAgain() {
+		var shotMovement = setInterval(function(){ upMove() }, 20);
+		
+
+		function upMove() {
+			var left = document.getElementById("target").offsetLeft;
+		    var up = document.getElementById('shot').offsetTop;
+		    var leftOff = document.getElementById('shot').offsetLeft;
+		    var parent = document.getElementById("container");
+		    var child = document.getElementById("shot");
+		    document.getElementById('target').style.backgroundImage="url('shark.gif')";
+		    if (up <= 100 && leftOff >= left && leftOff <= left + 100) {
+		    	document.getElementById('target').style.backgroundImage="url('boom.png')";
+		    	clearInterval(shotMovement);
+		    	document.getElementById('score').innerHTML++;
+		    	parent.removeChild(child);
+		    } 
+		    document.getElementById('shot').style.top = (up - 10) + 'px';
+		    if (up == 0) {
+		    	parent.removeChild(child);
+		    }
+		}
+	}
+	
+	
+	
+	</script>
+</body>
+</html>
